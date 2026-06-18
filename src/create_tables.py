@@ -164,6 +164,38 @@ CREATE TABLE IF NOT EXISTS OrderItem(
 );
 """)
 
+# 13. Cart
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS Cart(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customerId INTEGER NOT NULL,
+    createdAt TEXT NOT NULL,
+
+    FOREIGN KEY(customerId)
+        REFERENCES Customer(id)
+);
+""")
+
+# 14. CartItem
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS CartItem(
+    cartId INTEGER NOT NULL,
+    productBarcode TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+
+    PRIMARY KEY(cartId, productBarcode),
+
+    FOREIGN KEY(cartId)
+        REFERENCES Cart(id),
+
+    FOREIGN KEY(productBarcode)
+        REFERENCES Product(barcode),
+
+    CONSTRAINT chk_cartitem_quantity
+        CHECK(quantity > 0)
+);
+""")
+
 conn.commit()
 conn.close()
 
