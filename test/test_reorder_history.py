@@ -1,5 +1,7 @@
 import sqlite3
-db = sqlite3.connect('c:/Dev/minji-db-work/emart.db')
+from src.db_config import DB_PATH
+
+db = sqlite3.connect(DB_PATH)
 cur = db.cursor()
 
 print("=== Order Summary (all) ===")

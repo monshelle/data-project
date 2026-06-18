@@ -1,8 +1,7 @@
 import sqlite3
 from datetime import datetime
 from collections import defaultdict
-
-DB = 'c:/Dev/minji-db-work/emart.db'
+from src.db_config import DB_PATH as DB
 
 db = sqlite3.connect(DB)
 cur = db.cursor()

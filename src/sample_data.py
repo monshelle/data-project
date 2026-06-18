@@ -1,6 +1,7 @@
 import sqlite3
+from db_config import DB_PATH
 
-conn = sqlite3.connect('c:/Dev/minji-db-work/emart.db')
+conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
 
 for table in ['Store', 'SalesItem', 'Sales', 'Product']:

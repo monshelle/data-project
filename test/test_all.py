@@ -1,7 +1,6 @@
 """각 인터페이스의 핵심 쿼리를 non-interactive로 검증"""
 import sqlite3
-
-DB = 'c:/Dev/minji-db-work/emart.db'
+from src.db_config import DB_PATH as DB
 
 def run(label, sql, params=()):
     db = sqlite3.connect(DB)

@@ -10,9 +10,10 @@
 
 import sqlite3
 import random
+import os
 from datetime import datetime, timedelta, date
-
-DB = 'c:/Dev/minji-db-work/emart.db'
+from db_config import DB_PATH as DB
+os.makedirs('database', exist_ok=True)
 random.seed(42)
 
 db = sqlite3.connect(DB)

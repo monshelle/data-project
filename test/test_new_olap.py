@@ -1,6 +1,5 @@
 import sqlite3
-
-DB = 'c:/Dev/minji-db-work/emart.db'
+from src.db_config import DB_PATH as DB
 
 CAT_CASE = """
     CASE

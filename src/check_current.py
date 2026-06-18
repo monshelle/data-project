@@ -1,5 +1,7 @@
 import sqlite3
-db = sqlite3.connect('c:/Dev/minji-db-work/emart.db')
+from db_config import DB_PATH
+
+db = sqlite3.connect(DB_PATH)
 cur = db.cursor()
 cur.execute("SELECT MAX(id) FROM Sales"); print("Max salesId:", cur.fetchone()[0])
 cur.execute("SELECT MAX(id) FROM Customer"); print("Max customerId:", cur.fetchone()[0])
