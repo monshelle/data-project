@@ -1,4 +1,5 @@
 from db_connection import get_connection
+from datetime import datetime
 
 
 #메뉴
@@ -142,13 +143,13 @@ def customer_main(customer):
         choice = input("\nSelect Menu > ")
 
         if choice == "1":
-            search_product()
+            search_product(customer)
 
         elif choice == "2":
             browse_category()
 
         elif choice == "3":
-            print("View Cart")
+            view_cart(customer)
 
         elif choice == "4":
             print("Purchase")
@@ -165,7 +166,7 @@ def customer_main(customer):
 
 
 # 상품명 검색 시 결과 보여주는 기능
-def search_product():
+def search_product(customer):
 
     keyword = input("\nEnter Product Name > ")
 
@@ -178,7 +179,7 @@ def search_product():
         P.name,
         P.specification,
         P.price,
-        B.name
+        B.name AS brand_name
     FROM Product P
     LEFT JOIN Brand B
         ON P.brandId = B.id
@@ -187,11 +188,10 @@ def search_product():
 
     products = cursor.fetchall()
 
-    conn.close()
-
     if not products:
 
         print("\nNo products found.")
+        conn.close()
         return
 
     print("\n=====================================")
@@ -205,9 +205,32 @@ def search_product():
             f"Name    : {product['name']}\n"
             f"Spec    : {product['specification']}\n"
             f"Price   : {product['price']}원\n"
-            f"Brand   : {product['name'] if False else product[4]}\n"
+            f"Brand   : {product['brand_name']}\n"
         )
+
         print("-------------------------------------")
+
+    barcode = input(
+        "\nEnter Barcode To Add Cart (0=Back) > "
+    )
+
+    if barcode == "0":
+
+        conn.close()
+        return
+
+    quantity = int(
+        input("Quantity > ")
+    )
+
+    conn.close()
+
+    add_to_cart(
+        customer["id"],
+        barcode,
+        quantity
+    )
+
 
 #Browse Category
 def browse_category():
@@ -273,5 +296,142 @@ def browse_category():
             f"{product['price']}원 | "
             f"{product[2]}"
         )
+
+    conn.close()
+
+
+#장바구니 추가
+def add_to_cart(customer_id, barcode, quantity):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # 장바구니 존재 여부 확인
+
+    cursor.execute("""
+    SELECT id
+    FROM Cart
+    WHERE customerId = ?
+    """, (customer_id,))
+
+    cart = cursor.fetchone()
+
+    if cart:
+
+        cart_id = cart["id"]
+
+    else:
+
+        cursor.execute("""
+        INSERT INTO Cart(
+            customerId,
+            createdAt
+        )
+        VALUES (?, ?)
+        """, (
+            customer_id,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ))
+
+        cart_id = cursor.lastrowid
+
+    # 이미 담겨있는 상품인지 확인
+
+    cursor.execute("""
+    SELECT quantity
+    FROM CartItem
+    WHERE cartId = ?
+    AND productBarcode = ?
+    """, (cart_id, barcode))
+
+    item = cursor.fetchone()
+
+    if item:
+
+        cursor.execute("""
+        UPDATE CartItem
+        SET quantity = quantity + ?
+        WHERE cartId = ?
+        AND productBarcode = ?
+        """, (
+            quantity,
+            cart_id,
+            barcode
+        ))
+
+    else:
+
+        cursor.execute("""
+        INSERT INTO CartItem(
+            cartId,
+            productBarcode,
+            quantity
+        )
+        VALUES (?, ?, ?)
+        """, (
+            cart_id,
+            barcode,
+            quantity
+        ))
+
+    conn.commit()
+    conn.close()
+
+    print("\n>> Added To Cart")
+
+#장바구니 확인
+def view_cart(customer):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT id
+    FROM Cart
+    WHERE customerId = ?
+    """, (customer["id"],))
+
+    cart = cursor.fetchone()
+
+    if not cart:
+
+        print("\nCart is empty.")
+        conn.close()
+        return
+
+    cart_id = cart["id"]
+
+    cursor.execute("""
+    SELECT
+        P.name,
+        CI.quantity,
+        P.price,
+        CI.quantity * P.price
+    FROM CartItem CI
+    JOIN Product P
+        ON CI.productBarcode = P.barcode
+    WHERE CI.cartId = ?
+    """, (cart_id,))
+
+    items = cursor.fetchall()
+
+    print("\n=====================================")
+    print("            MY CART")
+    print("=====================================")
+
+    total = 0
+
+    for item in items:
+
+        print(
+            f"{item[0]:20}"
+            f"{item[1]}개  "
+            f"{item[3]:,}원"
+        )
+
+        total += item[3]
+
+    print("-------------------------------------")
+    print(f"TOTAL : {total:,}원")
 
     conn.close()
