@@ -1,6 +1,7 @@
 from db_connection import get_connection
 
 
+#회원 가입
 def sign_up():
 
     print("\n[ SIGN UP ]\n")
@@ -57,6 +58,7 @@ def sign_up():
 
         conn.close()
 
+#로그인
 def login():
 
     print("\n[ LOGIN ]\n")
@@ -88,6 +90,7 @@ def login():
 
         print("\n>> Invalid Email or Password")
 
+#customer login 후 main 화면
 def customer_main(customer):
 
     while True:
@@ -107,7 +110,7 @@ def customer_main(customer):
         choice = input("\nSelect Menu > ")
 
         if choice == "1":
-            print("Search Product")
+            search_product()
 
         elif choice == "2":
             print("Browse Category")
@@ -128,6 +131,7 @@ def customer_main(customer):
         else:
             print("Invalid Menu")
 
+#메뉴
 def customer_menu():
 
     while True:
@@ -157,3 +161,49 @@ def customer_menu():
 
         else:
             print("Invalid Menu")
+
+
+# 상품명 검색 시 결과 보여주는 기능
+def search_product():
+
+    keyword = input("\nEnter Product Name > ")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT
+        P.barcode,
+        P.name,
+        P.specification,
+        P.price,
+        B.name
+    FROM Product P
+    LEFT JOIN Brand B
+        ON P.brandId = B.id
+    WHERE P.name LIKE ?
+    """, (f"%{keyword}%",))
+
+    products = cursor.fetchall()
+
+    conn.close()
+
+    if not products:
+
+        print("\nNo products found.")
+        return
+
+    print("\n=====================================")
+    print("         SEARCH RESULT")
+    print("=====================================")
+
+    for product in products:
+
+        print(
+            f"Barcode : {product['barcode']}\n"
+            f"Name    : {product['name']}\n"
+            f"Spec    : {product['specification']}\n"
+            f"Price   : {product['price']}원\n"
+            f"Brand   : {product['name'] if False else product[4]}\n"
+        )
+        print("-------------------------------------")
