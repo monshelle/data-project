@@ -1,6 +1,38 @@
 from db_connection import get_connection
 
 
+#메뉴
+def customer_menu():
+
+    while True:
+
+        print("\n")
+        print("=====================================")
+        print("           CUSTOMER")
+        print("=====================================")
+        print("[1] Initial Screen")
+        print("[2] Sign Up")
+        print("[3] Login")
+        print("[4] Exit")
+
+        choice = input("\nSelect Menu > ")
+
+        if choice == "1":
+            print("Initial Screen")
+
+        elif choice == "2":
+            sign_up()
+
+        elif choice == "3":
+            login()
+
+        elif choice == "4":
+            break
+
+        else:
+            print("Invalid Menu")
+
+
 #회원 가입
 def sign_up():
 
@@ -113,7 +145,7 @@ def customer_main(customer):
             search_product()
 
         elif choice == "2":
-            print("Browse Category")
+            browse_category()
 
         elif choice == "3":
             print("View Cart")
@@ -126,37 +158,6 @@ def customer_main(customer):
 
         elif choice == "0":
             print("Logout")
-            break
-
-        else:
-            print("Invalid Menu")
-
-#메뉴
-def customer_menu():
-
-    while True:
-
-        print("\n")
-        print("=====================================")
-        print("           CUSTOMER")
-        print("=====================================")
-        print("[1] Initial Screen")
-        print("[2] Sign Up")
-        print("[3] Login")
-        print("[4] Exit")
-
-        choice = input("\nSelect Menu > ")
-
-        if choice == "1":
-            print("Initial Screen")
-
-        elif choice == "2":
-            sign_up()
-
-        elif choice == "3":
-            login()
-
-        elif choice == "4":
             break
 
         else:
@@ -207,3 +208,70 @@ def search_product():
             f"Brand   : {product['name'] if False else product[4]}\n"
         )
         print("-------------------------------------")
+
+#Browse Category
+def browse_category():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT DISTINCT name
+    FROM ProductType
+    ORDER BY name
+    """)
+
+    categories = cursor.fetchall()
+
+    if not categories:
+        print("\n등록된 카테고리가 없습니다.")
+        conn.close()
+        return
+
+    print("\n=====================================")
+    print("            CATEGORY")
+    print("=====================================")
+
+    for idx, category in enumerate(categories, start=1):
+        print(f"[{idx}] {category['name']}")
+
+    print("[0] Back")
+
+    choice = input("\nSelect Category > ")
+
+    if choice == "0":
+        conn.close()
+        return
+
+    try:
+        category_name = categories[int(choice)-1]["name"]
+    except:
+        print("Invalid Category")
+        conn.close()
+        return
+
+    cursor.execute("""
+    SELECT
+        P.name,
+        P.price,
+        B.name
+    FROM Product P
+    JOIN ProductType PT
+        ON P.barcode = PT.productBarcode
+    LEFT JOIN Brand B
+        ON P.brandId = B.id
+    WHERE PT.name = ?
+    """, (category_name,))
+
+    products = cursor.fetchall()
+
+    print(f"\n[{category_name} 상품 목록]\n")
+
+    for product in products:
+        print(
+            f"{product['name']} | "
+            f"{product['price']}원 | "
+            f"{product[2]}"
+        )
+
+    conn.close()
