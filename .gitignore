@@ -1,1 +1,5 @@
 database/
+.claude/
+
+__pycache__/
+*.pyc
