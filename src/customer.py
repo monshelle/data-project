@@ -57,6 +57,77 @@ def sign_up():
 
         conn.close()
 
+def login():
+
+    print("\n[ LOGIN ]\n")
+
+    email = input("Email    : ")
+    password = input("Password : ")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT *
+    FROM Customer
+    WHERE email = ?
+    AND password = ?
+    """, (email, password))
+
+    customer = cursor.fetchone()
+
+    conn.close()
+
+    if customer:
+
+        print("\n>> Login Success!")
+
+        customer_main(customer)
+
+    else:
+
+        print("\n>> Invalid Email or Password")
+
+def customer_main(customer):
+
+    while True:
+
+        print("\n")
+        print("=====================================")
+        print(f" Welcome, {customer['name']}")
+        print("=====================================")
+
+        print("[1] Search Product")
+        print("[2] Browse Category")
+        print("[3] View Cart")
+        print("[4] Purchase")
+        print("[5] Order History")
+        print("[0] Logout")
+
+        choice = input("\nSelect Menu > ")
+
+        if choice == "1":
+            print("Search Product")
+
+        elif choice == "2":
+            print("Browse Category")
+
+        elif choice == "3":
+            print("View Cart")
+
+        elif choice == "4":
+            print("Purchase")
+
+        elif choice == "5":
+            print("Order History")
+
+        elif choice == "0":
+            print("Logout")
+            break
+
+        else:
+            print("Invalid Menu")
+
 def customer_menu():
 
     while True:
@@ -79,7 +150,7 @@ def customer_menu():
             sign_up()
 
         elif choice == "3":
-            print("Login")
+            login()
 
         elif choice == "4":
             break
