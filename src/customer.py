@@ -152,7 +152,7 @@ def customer_main(customer):
             view_cart(customer)
 
         elif choice == "4":
-            print("Purchase")
+            purchase(customer)
 
         elif choice == "5":
             print("Order History")
@@ -435,3 +435,129 @@ def view_cart(customer):
     print(f"TOTAL : {total:,}원")
 
     conn.close()
+
+# 구매하기
+def purchase(customer):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # 장바구니 조회
+    cursor.execute("""
+    SELECT id
+    FROM Cart
+    WHERE customerId = ?
+    """, (customer["id"],))
+
+    cart = cursor.fetchone()
+
+    if not cart:
+
+        print("\nCart is empty.")
+        conn.close()
+        return
+
+    cart_id = cart["id"]
+
+    # 장바구니 상품 조회
+    cursor.execute("""
+    SELECT
+        CI.productBarcode,
+        CI.quantity,
+        P.price
+    FROM CartItem CI
+    JOIN Product P
+        ON CI.productBarcode = P.barcode
+    WHERE CI.cartId = ?
+    """, (cart_id,))
+
+    items = cursor.fetchall()
+
+    if not items:
+
+        print("\nCart is empty.")
+        conn.close()
+        return
+
+    total_price = 0
+
+    for item in items:
+
+        total_price += item["quantity"] * item["price"]
+
+    print(f"\nTOTAL PRICE : {total_price:,}원")
+
+    confirm = input("Purchase? (Y/N) > ")
+
+    if confirm.upper() != "Y":
+
+        conn.close()
+        return
+
+    # 매장 선택
+    store_id = int(
+        input("Store ID (1~5) > ")
+    )
+
+    # Sales 생성
+    cursor.execute("""
+    INSERT INTO Sales(
+        saleDate,
+        totalPrice,
+        customerId,
+        storeId
+    )
+    VALUES (?, ?, ?, ?)
+    """, (
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        total_price,
+        customer["id"],
+        store_id
+    ))
+
+    sales_id = cursor.lastrowid
+
+    # SalesItem 생성 + 재고 차감
+    for item in items:
+
+        barcode = item["productBarcode"]
+        quantity = item["quantity"]
+        price = item["price"]
+
+        cursor.execute("""
+        INSERT INTO SalesItem(
+            salesId,
+            productBarcode,
+            quantity,
+            unitPrice
+        )
+        VALUES (?, ?, ?, ?)
+        """, (
+            sales_id,
+            barcode,
+            quantity,
+            price
+        ))
+
+        # 재고 감소
+        cursor.execute("""
+        UPDATE Stocks
+        SET quantity = quantity - ?
+        WHERE storeId = ?
+        AND productBarcode = ?
+        """, (
+            quantity,
+            store_id,
+            barcode
+        ))
+
+    # 장바구니 비우기
+    cursor.execute("""
+    DELETE FROM CartItem
+    WHERE cartId = ?
+    """, (cart_id,))
+
+    conn.commit()
+    conn.close()
+
+    print("\n>> Purchase Completed")
