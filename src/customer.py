@@ -155,7 +155,7 @@ def customer_main(customer):
             purchase(customer)
 
         elif choice == "5":
-            print("Order History")
+            order_history(customer)
 
         elif choice == "0":
             print("Logout")
@@ -561,3 +561,68 @@ def purchase(customer):
     conn.close()
 
     print("\n>> Purchase Completed")
+
+def order_history(customer):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT
+        S.id,
+        S.saleDate,
+        S.totalPrice,
+        ST.name
+    FROM Sales S
+    JOIN Store ST
+        ON S.storeId = ST.id
+    WHERE S.customerId = ?
+    ORDER BY S.saleDate DESC
+    """, (customer["id"],))
+
+    sales = cursor.fetchall()
+
+    if not sales:
+
+        print("\nNo purchase history.")
+        conn.close()
+        return
+
+    print("\n")
+    print("=====================================")
+    print("         ORDER HISTORY")
+    print("=====================================")
+
+    for sale in sales:
+
+        print(
+            f"\nSale ID : {sale['id']}\n"
+            f"Date    : {sale['saleDate']}\n"
+            f"Store   : {sale['name']}\n"
+            f"Total   : {sale['totalPrice']:,}원"
+        )
+
+        print("-------------------------------------")
+
+        cursor.execute("""
+        SELECT
+            P.name,
+            SI.quantity
+        FROM SalesItem SI
+        JOIN Product P
+            ON SI.productBarcode = P.barcode
+        WHERE SI.salesId = ?
+        """, (sale["id"],))
+
+        items = cursor.fetchall()
+
+        for item in items:
+
+            print(
+                f"{item['name']:<20}"
+                f"{item['quantity']}개"
+            )
+
+        print("-------------------------------------")
+
+    conn.close()
