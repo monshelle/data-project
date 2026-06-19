@@ -135,7 +135,7 @@ def olap_top20_per_store():
 
 def olap_basket():
     db = conn(); cur = db.cursor()
-    keyword = input('Base product keyword (e.g. milk) > ').strip() or 'milk'
+    keyword = input('Base product keyword (e.g. 우유) > ').strip() or 'milk'
     cur.execute("""
         WITH base AS (
             SELECT DISTINCT si.salesId FROM SalesItem si

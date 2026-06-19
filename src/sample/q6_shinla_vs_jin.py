@@ -1,5 +1,12 @@
+"""
+신라면 vs 진라면: 신라면이 진라면보다 많이 판매된 매장 수 조회
+"""
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 import sqlite3
 from db_config import DB_PATH
+from utils import wl, wr
 
 conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
@@ -37,12 +44,14 @@ ORDER BY diff DESC
 cur.execute(q)
 rows = cur.fetchall()
 
-print(f"{'순위':<4} {'매장명':<16} {'지역':<6} {'신라면':>8} {'진라면':>8} {'차이':>6}")
-print("-" * 52)
+print(f"{wl('순위', 4)} {wl('매장명', 16)} {wl('지역', 6)} {wr('신라면', 8)} {wr('진라면', 8)} {wr('차이', 6)}")
+print("-" * 53)
 for i, r in enumerate(rows, 1):
-    print(f"{i:<4} {r[0]:<16} {r[1]:<6} {r[2]:>8} {r[3]:>8} {r[4]:>6}")
+    print(f"{wl(i, 4)} {wl(r[0], 16)} {wl(r[1], 6)} {wr(r[2], 8)} {wr(r[3], 8)} {wr(r[4], 6)}")
 
 if not rows:
     print("신라면이 진라면보다 많이 팔린 매장이 없습니다.")
+else:
+    print(f"\n신라면 > 진라면 매장 수: {len(rows)}개")
 
 conn.close()
