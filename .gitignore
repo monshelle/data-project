@@ -1,4 +1,4 @@
-database/
+database/*.db
 .claude/
 
 __pycache__/
