@@ -18,7 +18,7 @@ DBA 관리, OLAP 분석, 고객·공급업체 인터페이스, 자동 발주 기
 아래 링크에서 다운로드한 후 `database/` 폴더에 배치하세요.
 
 ```
-📥 다운로드 링크: [Google Drive 링크 — 제출 시 기재]
+📥 다운로드 링크: [https://drive.google.com/drive/folders/1b-4PHH2ZW7wgb_KGvXZ6wALlS_OsT6mb?usp=drive_link]
 ```
 
 ```
