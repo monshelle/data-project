@@ -160,8 +160,9 @@ def olap_basket():
     db.close(); pause()
 
 
-# Category analysis uses ProductType table.
-# Products with multiple types are counted in each category.
+# Category analysis uses ProductType leaf rows (productBarcode IS NOT NULL).
+# Hierarchy: leaf → Level1 → root, traversable via parentId (recursive CTE).
+# Products with multiple leaf types are counted in each category.
 def olap_category():
     db = conn(); cur = db.cursor()
     cur.execute("""
